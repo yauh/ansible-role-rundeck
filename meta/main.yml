@@ -1,0 +1,21 @@
+---
+galaxy_info:
+  author: Stephan Hochhaus
+  description: Install Rundeck job scheduler and runbook automation
+  company: freelance
+  license: BSD
+  min_ansible_version: 1.7
+  platforms:
+    - name: Ubuntu
+      versions:
+        - trusty
+        - utopic
+        - vivid
+    - name: Debian
+      versions:
+        - wheezy
+        - squeeze
+  categories:
+   - system
+dependencies:
+  - { role: yauh.java }

@@ -1,0 +1,4 @@
+---
+# handlers file for yauh.rundeck
+- name: restart rundeckd
+  service: name=rundeckd state=restarted

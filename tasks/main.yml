@@ -1,0 +1,68 @@
+---
+# tasks file for yauh.rundeck
+- name: Check if rundeck package is installed
+  command: dpkg-query -W {{rundeck_deb_package}}
+  register: rundeck_deb_check
+  failed_when: rundeck_deb_check.rc > 1
+  changed_when: rundeck_deb_check.rc == 1
+
+- name: Download rundeck deb package
+  get_url:
+    url="{{ rundeck_deb_url }}{{rundeck_deb_package}}"
+    dest="/usr/local/src/{{rundeck_deb_package}}"
+  sudo: yes
+  when: rundeck_deb_check.rc == 1
+
+- name: Install rundeck deb package
+  apt: deb="/usr/local/src/{{rundeck_deb_package}}"
+  sudo: yes
+  when: rundeck_deb_check.rc == 1
+
+- name: Enable rundeckd on boot
+  service: name=rundeckd state=started enabled=yes
+  sudo: yes
+
+- name: register a tmpfile name
+  shell: mktemp
+  register: mktemp
+  changed_when: false
+
+#Its a hack but it works[tm]
+- name: generate the realm into a tmp file
+  #shell: java -cp {{rundeck_jetty_jar}} org.eclipse.jetty.util.security.Password {{item.password}} 2>&1 | grep MD5 >> {{ mktemp.stdout }}
+  shell: HASH="$(java -cp {{ rundeck_jetty_jar }} org.eclipse.jetty.util.security.Password "{{ item.password }}" 2>&1 | grep OBF )" ; printf "{{ item.name }}:$HASH,{{ item.roles|join(',')}}\n" >> {{ mktemp.stdout }}
+  with_items: rundeck_users
+  sudo: yes
+  changed_when: false
+
+- name: Checking for realm changes
+  shell: diff {{ mktemp.stdout }} /etc/rundeck/realm.properties
+  register: diff
+  changed_when: false
+  failed_when: false
+
+- name: updating realm
+  command: cp -pf {{ mktemp.stdout }} /etc/rundeck/realm.properties
+  when: diff.rc != 0
+  sudo: yes
+
+- name: Set realm owner to rundeck
+  file: path=/etc/rundeck/realm.properties owner=rundeck group=rundeck
+  sudo: yes
+
+- name: cleanup
+  changed_when: false
+  file: name={{ mktemp.stdout }} state=absent
+
+- name: Configure rundeck properties
+  lineinfile:
+    dest=/etc/rundeck/rundeck-config.properties
+    state=present
+    regexp='^{{ item.key }}'
+    line='{{ item.key }}={{ item.value }}'
+  with_items:
+    - "{{rundeck_config_properties}}"
+  sudo: yes
+  notify: restart rundeckd
+
+# TODO: Adjust /etc/rundeck/framework.properties
