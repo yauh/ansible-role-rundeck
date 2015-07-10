@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Stephan Hochhaus
-  description: Install Rundeck job scheduler and runbook automation
+  description: Set up Rundeck job scheduler and runbook automation
   company: freelance
   license: BSD
   min_ansible_version: 1.7
