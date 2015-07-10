@@ -18,4 +18,4 @@ galaxy_info:
   categories:
    - system
 dependencies:
-  - { role: yauh.java }
+  - { role: yauh.java8 }
