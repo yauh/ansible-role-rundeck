@@ -32,7 +32,7 @@
 #Its a hack but it works[tm]
 - name: generate the realm into a tmp file
   #shell: java -cp {{rundeck_jetty_jar}} org.eclipse.jetty.util.security.Password {{item.password}} 2>&1 | grep MD5 >> {{ mktemp.stdout }}
-  shell: HASH="$(java -cp {{ rundeck_jetty_jar }} org.eclipse.jetty.util.security.Password "{{ item.password }}" 2>&1 | grep OBF )" ; printf "{{ item.name }}:$HASH,{{ item.roles|join(',')}}\n" >> {{ mktemp.stdout }}
+  shell: HASH="$(java -cp {{ rundeck_jetty_jar }} org.eclipse.jetty.util.security.Password "{{ item.password }}" 2>&1 | grep MD5 )" ; printf "{{ item.name }}:$HASH,{{ item.roles|join(',')}}\n" >> {{ mktemp.stdout }}
   with_items: rundeck_users
   changed_when: false
 
@@ -49,6 +49,9 @@
 - name: cleanup
   changed_when: false
   file: name={{ mktemp.stdout }} state=absent
+
+- name: Set ownership for realm.properties
+  file: path=/etc/rundeck/realm.properties owner=rundeck group=rundeck mode=0400
 
 - name: Configure rundeck properties
   lineinfile:

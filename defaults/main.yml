@@ -8,7 +8,7 @@ rundeck_launcher_jar: rundeck-launcher-2.5.2.jar
 rundeck_launcher_jar_sha: 51672c37ee5f9631f5865842e8cd0ed948519790
 rundeck_config_properties:
   - key: grails.serverURL
-    value: http://rundeck.local:4440
+    value: http://{{ ansible_fqdn }}:4440
   - key: loglevel.default
     value: VERBOSE
 rundeck_users:
